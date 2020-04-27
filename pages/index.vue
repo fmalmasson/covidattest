@@ -16,7 +16,7 @@
         round
         class="covid-btn-download"
         icon="el-icon-download"
-        @click="generate"
+        @click="generate(0)"
       />
       <el-button
         class="covid-btn-emergency"
@@ -89,11 +89,7 @@ export default {
   }),
   methods: {
     generate(v) {
-      if (v) {
-        GeneratorService.generateAttest(this.usersOptions, this.reason, v)
-      } else {
-        GeneratorService.generateAttest(this.usersOptions, this.reason)
-      }
+      GeneratorService.generateAttest(this.usersOptions, this.reason, v)
     }
   }
 }

@@ -49,6 +49,12 @@ export default {
   /*
    ** Build configuration
    */
+  manifest: {
+    name: 'covid escape',
+    short_name: 'covid escape',
+    lang: 'fr',
+    display: 'standalone'
+  },
   build: {
     transpile: [/^element-ui/],
     /*
