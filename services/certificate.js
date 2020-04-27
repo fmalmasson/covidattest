@@ -8,7 +8,7 @@ import { library, dom } from '@fortawesome/fontawesome-svg-core'
 import { faEye, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 
 // import './check-updates'
-import { format } from 'date-fns'
+import { format, sub } from 'date-fns'
 import pdfBase from '../static/certificate.pdf'
 
 const $ = (...args) => document.querySelector(...args)
@@ -88,7 +88,7 @@ function idealFontSize(font, text, maxWidth, minSize, defaultSize) {
   return textWidth > maxWidth ? null : currentSize
 }
 
-async function generatePdf(profile, reasons) {
+async function generatePdf(profile, reason, minutes) {
   const creationDate = new Date().toLocaleDateString('fr-FR')
   const creationHour = new Date()
     .toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
@@ -104,7 +104,9 @@ async function generatePdf(profile, reasons) {
     town
   } = profile
   const datesortie = format(new Date(), 'dd/MM/yyyy')
-  const heuresortie = format(new Date(), "HH'h'mm")
+  const heuresortie = minutes
+    ? format(sub(new Date(), { minutes }), "HH'h'mm")
+    : format(new Date(), "HH'h'mm")
 
   const data = [
     `Cree le: ${creationDate} a ${creationHour}`,
@@ -113,7 +115,7 @@ async function generatePdf(profile, reasons) {
     `Naissance: ${birthday} a ${lieunaissance}`,
     `Adresse: ${address} ${zipcode} ${town}`,
     `Sortie: ${datesortie} a ${heuresortie}`,
-    `Motifs: ${reasons}`
+    `Motifs: ${reason}`
   ].join('; ')
 
   const existingPdfBytes = await fetch(pdfBase).then((res) => res.arrayBuffer())
@@ -131,25 +133,25 @@ async function generatePdf(profile, reasons) {
   drawText(lieunaissance, 92, 638)
   drawText(`${address} ${zipcode} ${town}`, 134, 613)
 
-  if (reasons.includes('travail')) {
+  if (reason.includes('travail')) {
     drawText('x', 76, 527, 19)
   }
-  if (reasons.includes('courses')) {
+  if (reason.includes('courses')) {
     drawText('x', 76, 478, 19)
   }
-  if (reasons.includes('sante')) {
+  if (reason.includes('sante')) {
     drawText('x', 76, 436, 19)
   }
-  if (reasons.includes('famille')) {
+  if (reason.includes('famille')) {
     drawText('x', 76, 400, 19)
   }
-  if (reasons.includes('sport')) {
+  if (reason.includes('sport')) {
     drawText('x', 76, 345, 19)
   }
-  if (reasons.includes('judiciaire')) {
+  if (reason.includes('judiciaire')) {
     drawText('x', 76, 298, 19)
   }
-  if (reasons.includes('missions')) {
+  if (reason.includes('missions')) {
     drawText('x', 76, 260, 19)
   }
   let locationSize = idealFontSize(font, profile.town, 83, 7, 11)
@@ -164,7 +166,7 @@ async function generatePdf(profile, reasons) {
 
   drawText(profile.town, 111, 226, locationSize)
 
-  if (reasons !== '') {
+  if (reason !== '') {
     // Date sortie
     drawText(datesortie, 92, 200)
     drawText(heuresortie, 200, 201)
@@ -201,18 +203,17 @@ async function generatePdf(profile, reasons) {
 function downloadBlob(blob, fileName) {
   const link = document.createElement('a')
   const url = URL.createObjectURL(blob)
-  console.log(link)
   link.href = url
   link.download = fileName
   document.body.appendChild(link)
   link.click()
 }
 
-function getAndSaveReasons(reasons) {
-  const values = reasons.join('-')
-  localStorage.setItem('reasons', values)
-  return values
-}
+// function getAndSaveReasons(reasons) {
+//   const values = reasons.join('-')
+//   localStorage.setItem('reasons', values)
+//   return values
+// }
 
 // see: https://stackoverflow.com/a/32348687/1513045
 function isFacebookBrowser() {
@@ -249,18 +250,19 @@ if (isFacebookBrowser()) {
 // }
 
 const GeneratorService = {
-  async generateAttest(reasons) {
-    const multipleReasons = getAndSaveReasons(reasons)
+  async generateAttest(users, reason, minutes) {
     const creationDate = new Date().toLocaleDateString('fr-CA')
     const creationHour = new Date()
       .toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
       .replace(':', '-')
 
-    for (let i = 0; i < profiles.length; i++) {
-      const pdfBlob = await generatePdf(profiles[i], multipleReasons)
+    const profilesToUse = users.length > 0 ? users : profiles
+
+    for (let i = 0; i < profilesToUse.length; i++) {
+      const pdfBlob = await generatePdf(profilesToUse[i], reason, minutes)
       downloadBlob(
         pdfBlob,
-        `${profiles[i].firstname}-attestation-${creationDate}_${creationHour}.pdf`
+        `${profilesToUse[i].firstname}-attestation-${creationDate}_${creationHour}.pdf`
       )
     }
   }
