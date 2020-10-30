@@ -1,9 +1,19 @@
 <template>
   <div class="container">
     <div class="select-reasons">
+      <el-checkbox-group v-model="checkList">
+        <el-checkbox-button
+          v-for="user in usersOptions"
+          :key="user.firstname"
+          :label="user.firstname"
+        />
+      </el-checkbox-group>
+    </div>
+
+    <div class="select-reasons">
       <el-select v-model="reason" placeholder="MOTIFS">
         <el-option
-          v-for="item in options"
+          v-for="item in reasonsOptions"
           :key="item.value"
           :label="item.label"
           :value="item.value"
@@ -33,35 +43,17 @@ import GeneratorService from '~/services/certificate.js'
 
 export default {
   data: () => ({
-    users: [],
-    usersOptions: [
-      {
-        lastname: 'Malmasson',
-        firstname: 'Fabien',
-        birthday: '30/01/1984',
-        lieunaissance: 'Fontenay-aux-roses',
-        address: '66 rue de chateaulin',
-        zipcode: '44000',
-        town: 'Nantes'
-      },
-      {
-        lastname: 'Autin',
-        firstname: 'Sophie',
-        birthday: '25/03/1987',
-        lieunaissance: 'Fontenay-le-comte',
-        address: '66 rue de chateaulin',
-        zipcode: '44000',
-        town: 'Nantes'
-      }
-    ],
-    options: [
+    checkList: [],
+
+    usersOptions: [],
+    reasonsOptions: [
       {
         value: 'travail',
         label: 'travail'
       },
       {
-        value: 'courses',
-        label: 'courses'
+        value: 'achats',
+        label: 'achats'
       },
       {
         value: 'sante',
@@ -72,24 +64,70 @@ export default {
         label: 'famille'
       },
       {
-        value: 'sport',
-        label: 'sport'
+        value: 'handicap',
+        label: 'handicap'
       },
       {
-        value: 'judiciaire',
-        label: 'judiciaire'
+        value: 'sport_animaux',
+        label: 'sport_animaux'
       },
       {
-        value: 'missions',
-        label: 'missions'
+        value: 'convocation',
+        label: 'convocation'
+      },
+      {
+        value: 'enfants',
+        label: 'enfants'
       }
     ],
     reason: null,
     value2: []
   }),
+  computed: {
+    selectedUsers() {
+      return [
+        {
+          lastname: 'Malmasson',
+          firstname: 'Fabien',
+          birthday: '30/01/1984',
+          placeofbirth: 'Fontenay-aux-roses',
+          address: '66 rue de chateaulin',
+          zipcode: '44000',
+          city: 'Nantes'
+        },
+        {
+          lastname: 'Autin',
+          firstname: 'Sophie',
+          birthday: '25/03/16',
+          placeofbirth: 'Fontenay-le-comte',
+          address: '66 rue de chateaulin',
+          zipcode: '44000',
+          city: 'Nantes'
+        }
+      ]
+      // return this.usersOptions.filter((x) =>
+      //   this.checkList.includes(x.firstname)
+      // )
+    },
+    options() {
+      return this.usersOptions
+    }
+  },
+  mounted() {
+    this.getUsers()
+  },
   methods: {
     generate(v) {
-      GeneratorService.generateAttest(this.usersOptions, this.reason, v)
+      GeneratorService.generateAttest(this.selectedUsers, this.reason, v)
+    },
+    addPeople() {
+      this.$router.push('form')
+    },
+    async getUsers() {
+      const users = await this.$localForage.getItem('users')
+      this.usersOptions = users
+      // console.log(this.usersOptions)
+      // if (this.usersOptions === null) this.addPeople()
     }
   }
 }
@@ -101,40 +139,40 @@ li {
   font-family: 'Orbitron', sans-serif;
 }
 .el-input__inner {
-  color: #ffdc32;
+  color: white;
   font-weight: 800;
   font-family: 'Orbitron', sans-serif;
 }
 
 .el-input__inner::placeholder {
-  color: #ffdc32;
+  color: white;
   font-weight: 800;
   font-family: 'Orbitron', sans-serif;
 }
 .el-select-dropdown__item.selected {
-  color: #ffdc32;
+  color: white;
 }
 .el-select-dropdown__item.selected {
   background-color: black;
 }
 .el-select-dropdown {
-  border-color: #ffdc32;
+  border-color: white;
 }
 .el-select .el-input.is-focus .el-input__inner {
   border-color: black;
 }
 .el-select .el-input .el-input__inner {
-  border-color: black;
+  border-color: transparent;
 }
 .el-select-dropdown__list {
-  background-color: #ffdc32;
-  border-color: #ffdc32;
+  background-color: white;
+  border-color: white;
 }
 .el-input__inner {
-  background-color: black;
-  border-color: #ffdc32;
+  background-color: transparent;
+  border-color: white;
   text-align: center;
-  color: #ffdc32;
+  color: white;
 }
 .el-input__suffix {
   display: none;
@@ -147,7 +185,7 @@ li {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  background-image: url('../static/319806.png');
+  background-image: url('../static/881615.jpg');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -185,13 +223,13 @@ li {
   margin-bottom: 20px;
 }
 .covid-btn-download {
-  background-color: #ffdc32;
-  border-color: #ffdc32;
+  background-color: white;
+  border-color: white;
   color: black;
 }
 .covid-btn-emergency {
-  background-color: black;
-  border-color: #ffdc32;
-  color: #ffdc32;
+  background-color: white;
+  border-color: white;
+  color: black;
 }
 </style>
